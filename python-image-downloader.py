@@ -2,7 +2,7 @@ from shutil import copyfileobj
 from requests import get
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-import time
+from time import sleep
 from base64 import b64decode
 from os import path, mkdir
 
@@ -25,12 +25,12 @@ for keyword in keyword_list:
     except:
         pass
     # Waits for 5 seconds in case the page doesn't load fast enough/페이지가 로딩이 느릴 때를 대비해 5초를 기다림
-    time.sleep(5)
+    sleep(5)
     # Goes to the bottom of the page/페이지의 가장 밑까지 가게하는 코드
     for j in range(15):
         driver.execute_script(
             "window.scrollTo(0,document.body.scrollHeight)")
-        time.sleep(1)
+        sleep(1)
     print('Done scrolling')
     # Finds all images within the page/페이지 내 모든 이미지를 찾음
     image_urls = driver.find_elements_by_css_selector('img.Q4LuWd')
