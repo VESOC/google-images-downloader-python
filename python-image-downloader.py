@@ -4,7 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from time import sleep
 from base64 import b64decode
-from os import path, mkdir
+import os
 
 # Gets an array of keywords separated by spaces/유저가 입력한 키워드들을 리스트로 저장
 keyword_list = input('어떤 사진들을 찾을까요(공백으로 구분해 주세요): ').split()
@@ -16,14 +16,14 @@ for keyword in keyword_list:
     # Link to images tab on Google with the keyword/구글의 키워드 검색결과의 이미지 탭으로 가는 링크
     url = '''https://www.google.com/search?tbm=isch&source=hp&biw=&bih=&ei=0VgdX4viLcq9hwOB7IngCQ&q=''' + keyword.strip()
     driver.get(url)
-    # Creates a directory with the keyword's plural form if it doesn't exist/폴더가 없으면 키워드의 복수형으로 폴더를 만듦
+    # Creates a directory with the keyword if it doesn't exist/폴더가 없으면 키워드로 폴더를 만듦
     try:
-        parent_dir = "./images"
-        path = path.join(parent_dir, keyword + 's')
-        mkdir(path)
+        parent_dir = "./images/"
+        path = os.path.join(parent_dir, keyword)
+        os.mkdir(path)
         print('Path made for ' + keyword)
     except:
-        pass
+        print('y')
     # Waits for 5 seconds in case the page doesn't load fast enough/페이지가 로딩이 느릴 때를 대비해 5초를 기다림
     sleep(5)
     # Goes to the bottom of the page/페이지의 가장 밑까지 가게하는 코드
