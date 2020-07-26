@@ -6,51 +6,70 @@ import time
 from base64 import b64decode
 from os import path, mkdir
 
-
-def save_image_to_file(image, dirname, suffix):
-    with open('{dirname}/{suffix}.jpeg'.format(dirname=dirname, suffix=suffix), 'wb') as out_file:
-        copyfileobj(image.raw, out_file)
-
-
-data_list = input('어떤 사진들을 찾을까요(공백으로 구분해 주세요): ').split()
+# Gets an array of keywords separated by spaces/유저가 입력한 키워드들을 리스트로 저장
+keyword_list = input('어떤 사진들을 찾을까요(공백으로 구분해 주세요): ').split()
 PATH = './chromedriver'
 driver = webdriver.Chrome(PATH)
-for data in data_list:
-    url = '''https://www.google.com/search?tbm=isch&source=hp&biw=&bih=&ei=0VgdX4viLcq9hwOB7IngCQ&q=''' + data.strip()
+
+# Runs a for loop for each keyword/키워드 별로 반복문을 돌림
+for keyword in keyword_list:
+    # Link to images tab on Google with the keyword/구글의 키워드 검색결과의 이미지 탭으로 가는 링크
+    url = '''https://www.google.com/search?tbm=isch&source=hp&biw=&bih=&ei=0VgdX4viLcq9hwOB7IngCQ&q=''' + keyword.strip()
     driver.get(url)
+    # Creates a directory with the keyword's plural form if it doesn't exist/폴더가 없으면 키워드의 복수형으로 폴더를 만듦
     try:
         parent_dir = "./images"
-        path = path.join(parent_dir, data + 's')
+        path = path.join(parent_dir, keyword + 's')
         mkdir(path)
-        print('Path made for ' + data)
+        print('Path made for ' + keyword)
     except:
         pass
+    # Waits for 5 seconds in case the page doesn't load fast enough/페이지가 로딩이 느릴 때를 대비해 5초를 기다림
     time.sleep(5)
+    # Goes to the bottom of the page/페이지의 가장 밑까지 가게하는 코드
     for j in range(15):
         driver.execute_script(
             "window.scrollTo(0,document.body.scrollHeight)")
         time.sleep(1)
     print('Done scrolling')
+    # Finds all images within the page/페이지 내 모든 이미지를 찾음
     image_urls = driver.find_elements_by_css_selector('img.Q4LuWd')
+    # Prints the amount of images-usually 400/이미지의 갯수를 출력함-보통 400 정도
     print('Found', len(image_urls), 'results')
+    count = 1
     for image_idx in range(len(image_urls)):
-        n = image_urls[image_idx].get_attribute('src')
+        # Gets the source of the image(data or link)/이미지의 소스를 가져옴(데이터 혹은 링크)
+        src = image_urls[image_idx].get_attribute('src')
         try:
-            with open("./images/{}/{}.{}".format(data + 's', str(image_idx+1), 'png' if n[11] == 'p' and n[0] == 'd' else 'jpeg'), "wb") as f:
-                if n[0] == 'd':
+            # Overwrites the targeted image/선택된 이미지를 덮어쓴다
+            with open("./images/{}/{}.{}".format(keyword + 's', str(count), 'png' if src[11] == 'p' and src[0] == 'd' else 'jpeg'), "wb") as f:
+                # Image source is divided into two groups-base64 data and a link
+                # if the first letter of the source is 'd' it is a data otherwise a link
+                # 이미지 소스는 base64 데이터와 링크로 나뉜다
+                # 만약 소스의 첫번째 글자가 'd'라면 데이터이고 아니면 링크이다
+                if src[0] == 'd':  # Data/데이터
                     try:
-                        if type(n) is type('s'):
-                            f.write(b64decode(n[22:]))
+                        # Decoding the data into an image-starts from the 22nd index because of google and their latency stuff
+                        # 이미지 데이터를 디코딩해 저장한다(데이터를 해석해 저장)-구글의 레이턴시 관련 이유로 22번째 인덱스부터 시작한다.
+                        f.write(b64decode(src[22:]))
+                        count += 1
                     except:
                         pass
-                else:
-                    if type(n) is type('s'):
-                        response = get(n, stream=True)
-                        copyfileobj(response.raw, f)
-                        del response
+                else:  # Link/링크
+                    # Calls requests.get on the link which returns the image along with other things-stream is used for stability
+                    # requests.get 함수를 사용해 링크에서 이미지(와 기타 등등)을 가져온다-stream은 안정성을 위해 추가
+                    response = get(src, stream=True)
+                    # Saves only the image in the currently open file
+                    # 이미지만을 열고있는 파일에 저장한다.
+                    copyfileobj(response.raw, f)
+                    # Deletes the image to clear buffer-in case there is one
+                    # 버퍼를 없앤다
+                    del response
+                    count += 1
         except:
             pass
     print('Done scrapping images')
 
-
+# Closes the browser and stops code execution using selenium
+# 브라우저를 닫고 더 이상의 셀레니움을 사용한 코드 실행을 멈춤
 driver.quit()
