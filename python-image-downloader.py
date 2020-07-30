@@ -23,7 +23,7 @@ for keyword in keyword_list:
         os.mkdir(path)
         print('Path made for ' + keyword)
     except:
-        print('y')
+        print('Something went wrong while creating a new directory for keyword:', keyword)
     # Waits for 5 seconds in case the page doesn't load fast enough/페이지가 로딩이 느릴 때를 대비해 5초를 기다림
     sleep(5)
     # Goes to the bottom of the page/페이지의 가장 밑까지 가게하는 코드
@@ -42,6 +42,7 @@ for keyword in keyword_list:
         src = image_urls[image_idx].get_attribute('src')
         try:
             # Overwrites the targeted image/선택된 이미지를 덮어쓴다
+            # Although all links are saved as jpeg, some datas are stored as png the ternary statement below prevents error/링크 사진들은 모두 jpeg 포멧이지만 몇몇 데이터들은 png이므로 아래 삼항 연산자로 에러를 없앰
             with open("./images/{}/{}.{}".format(keyword + 's', str(count), 'png' if src[11] == 'p' and src[0] == 'd' else 'jpeg'), "wb") as f:
                 # Image source is divided into two groups-base64 data and a link
                 # if the first letter of the source is 'd' it is a data otherwise a link
@@ -54,20 +55,23 @@ for keyword in keyword_list:
                         f.write(b64decode(src[22:]))
                         count += 1
                     except:
-                        pass
+                        print('Problem with saving image from encoded data:', src)
                 else:  # Link/링크
-                    # Calls requests.get on the link which returns the image along with other things-stream is used for stability
-                    # requests.get 함수를 사용해 링크에서 이미지(와 기타 등등)을 가져온다-stream은 안정성을 위해 추가
-                    response = get(src, stream=True)
-                    # Saves only the image in the currently open file
-                    # 이미지만을 열고있는 파일에 저장한다.
-                    copyfileobj(response.raw, f)
-                    # Deletes the image to clear buffer-in case there is one
-                    # 버퍼를 없앤다
-                    del response
-                    count += 1
+                    try: 
+                        # Calls requests.get on the link which returns the image along with other things-stream is used for stability
+                        # requests.get 함수를 사용해 링크에서 이미지(와 기타 등등)을 가져온다-stream은 안정성을 위해 추가
+                        response = get(src, stream=True)
+                        # Saves only the image in the currently open file
+                        # 이미지만을 열고있는 파일에 저장한다.
+                        copyfileobj(response.raw, f)
+                        # Deletes the image to clear buffer-in case there is one
+                        # 버퍼를 없앤다
+                        del response
+                        count += 1
+                    except:
+                        print('Problem with url:', src)
         except:
-            pass
+            print('Problem with opening image file')
     print('Done scrapping images')
 
 # Closes the browser and stops code execution using selenium
