@@ -2,6 +2,7 @@ from shutil import copyfileobj
 from requests import get
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 from time import sleep
 from base64 import b64decode
 import os
@@ -19,27 +20,40 @@ for keyword in keyword_list:
     # Creates a directory with the keyword if it doesn't exist/폴더가 없으면 키워드로 폴더를 만듦
     try:
         parent_dir = "./images/"
-        path = os.path.join(parent_dir, keyword)
+        path = os.path.join(parent_dir, keyword + 's')
         os.mkdir(path)
         print('Path made for ' + keyword)
     except:
-        print('Something went wrong while creating a new directory for keyword:', keyword)
+        print('Directory already exists for keyword:', keyword)
     # Waits for 5 seconds in case the page doesn't load fast enough/페이지가 로딩이 느릴 때를 대비해 5초를 기다림
     sleep(5)
     # Goes to the bottom of the page/페이지의 가장 밑까지 가게하는 코드
-    for j in range(15):
+    for j in range(10):
         driver.execute_script(
-            "window.scrollTo(0,document.body.scrollHeight)")
-        sleep(1)
+            'window.scrollTo(0,document.body.scrollHeight)')
+        sleep(0.5)
+    # Clicks the button that loads more images/이미지를 더 로딩하는 버튼을 누름
+    more_btn = driver.find_element_by_class_name('mye4qd')
+    actions = ActionChains(driver)
+    actions.click(more_btn).perform()
+    # Goes to the bottom of the next page/다음 페이지의 가장 밑까지 가게한다
+    for j in range(10):
+        driver.execute_script(
+            'window.scrollTo(0,document.body.scrollHeight)')
+        sleep(0.5)
     print('Done scrolling')
     # Finds all images within the page/페이지 내 모든 이미지를 찾음
     image_urls = driver.find_elements_by_css_selector('img.Q4LuWd')
     # Prints the amount of images-usually 400/이미지의 갯수를 출력함-보통 400 정도
     print('Found', len(image_urls), 'results')
     count = 1
+    err = -1
     for image_idx in range(len(image_urls)):
         # Gets the source of the image(data or link)/이미지의 소스를 가져옴(데이터 혹은 링크)
-        src = image_urls[image_idx].get_attribute('src')
+        # Some images return None with 'src' but 'data-src' works/몇 이미지에는 'src'는 None을 반환하지만 'data-src'는 됨
+        src = image_urls[image_idx].get_attribute('data-src') 
+        if image_urls[image_idx].get_attribute('data-src') == None:
+            src = image_urls[image_idx].get_attribute('src')
         try:
             # Overwrites the targeted image/선택된 이미지를 덮어쓴다
             # Although all links are saved as jpeg, some datas are stored as png the ternary statement below prevents error/링크 사진들은 모두 jpeg 포멧이지만 몇몇 데이터들은 png이므로 아래 삼항 연산자로 에러를 없앰
@@ -57,7 +71,7 @@ for keyword in keyword_list:
                     except:
                         print('Problem with saving image from encoded data:', src)
                 else:  # Link/링크
-                    try: 
+                    try:
                         # Calls requests.get on the link which returns the image along with other things-stream is used for stability
                         # requests.get 함수를 사용해 링크에서 이미지(와 기타 등등)을 가져온다-stream은 안정성을 위해 추가
                         response = get(src, stream=True)
@@ -71,7 +85,10 @@ for keyword in keyword_list:
                     except:
                         print('Problem with url:', src)
         except:
-            print('Problem with opening image file')
+            print('Problem with opening image file',
+                  image_urls[image_idx], image_idx)
+            err = count-1
+    print('Last found error index:', 'Not Found' if err == -1 else count-1)
     print('Done scrapping images')
 
 # Closes the browser and stops code execution using selenium
