@@ -1,5 +1,5 @@
 # google-images-downloader-python
-Downloading images from google using python.
+Downloading images from google using python. Remember to update the chromedriver that matches your chrome version.
 You may only use this project for personal use only.
 Some of the things you are not allowed to do are:
   Commercial Use
