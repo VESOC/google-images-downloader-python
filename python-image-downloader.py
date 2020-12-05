@@ -15,8 +15,11 @@ keyword_list = askstring(
     title='구글 이미지 다운로더', prompt='검색할 키워드를 콤마(,)로 구분해주세요(키워드가 두단어 이상이라면 공백으로 구분하세요').split(',')
 window.destroy()
 PATH = './chromedriver'
+# Option to not show chrome/크롬을 띄우지 않는 옵션 설정
+options = webdriver.ChromeOptions()
+options.headless = True
 try:
-    driver = webdriver.Chrome(PATH)
+    driver = webdriver.Chrome(PATH, options=options)
     # Runs a for loop for each keyword/키워드 별로 반복문을 돌림
     for keyword in keyword_list:
         # Link to images tab on Google with the keyword/구글의 키워드 검색결과의 이미지 탭으로 가는 링크
