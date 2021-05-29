@@ -1,0 +1,5 @@
+/images/!*.*
+.vscode
+.DS_Store
+chromedriver
+test.*

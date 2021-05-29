@@ -65,7 +65,7 @@ try:
             # Gets element by xpath because there are mutiple elements with the same class as this element
             # 같은 클래스를 가진 이미지가 여러개이기 때문에 xpath를 통해 지정함
             image_url = driver.find_element_by_xpath(
-                '/html/body/div[2]/c-wiz/div[3]/div[2]/div[3]/div/div/div[3]/div[2]/c-wiz/div[1]/div[1]/div/div[2]/a/img').get_attribute("src")
+                '/html/body/div[2]/c-wiz/div[3]/div[2]/div[3]/div/div/div[3]/div[2]/c-wiz/div/div[1]/div[1]/div/div[2]/a/img').get_attribute("src")
             with open(f'./images/{keyword}/{count}.jpg', 'wb') as image_file:
                 # If images is in base64 encoded text/이미지가 base64로 인코딩된 텍스트일때
                 if image_url.startswith('data:image/jpeg;base64,'):
